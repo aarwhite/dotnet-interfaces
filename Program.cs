@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace interfaces
@@ -7,26 +8,29 @@ namespace interfaces
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Getting Flyable Implementations");
-            var flyableTypes = new TypeResolver().Resolve(typeof(IFlyable));
-
-            foreach (var types in flyableTypes)
-            {
-                var fv = (IFlyable)Activator.CreateInstance(types);
-                fv.TakeOff();
-            }
-
+            Console.WriteLine("Getting Vehicle Implementations");
             Console.WriteLine(Environment.NewLine);
+
+            IEnumerable<Type> vehicleTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => typeof(IVehicle).IsAssignableFrom(p) && !p.IsInterface);
+
             Console.WriteLine("--------------");
             Console.WriteLine(Environment.NewLine);
-            Console.WriteLine("Getting Vehicle Implementations");
-
-            var vehicleTypes = new TypeResolver().Resolve(typeof(IVehicle));
 
             foreach (var types in vehicleTypes)
             {
                 var v = (IVehicle)Activator.CreateInstance(types);
                 v.Start();
+            }
+
+            Console.WriteLine("Getting Flyable Implementations");
+            var flyableTypes = vehicleTypes.Where(x => x.IsAssignableFrom(typeof(IFlyable)));
+
+            foreach (var types in flyableTypes)
+            {
+                var fv = (IFlyable)Activator.CreateInstance(types);
+                fv.TakeOff();
             }
 
             Console.ReadLine();
